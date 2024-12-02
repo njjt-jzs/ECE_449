@@ -1,0 +1,18 @@
+[X, Y] = meshgrid(1:6, 1);  % 生成 1x6 的网格
+Z = zeros(size(X));  % 初始化 Z 矩阵
+
+% 假设 differences 是你的数据
+differences = [10, 20, 30, 40, 50, 60];  % 用你的实际数据替换
+
+for i = 1:6
+    Z(:, i) = differences(i);  
+end
+
+
+imagesc(Z);
+
+colorbar;
+
+xlabel('Variable Index');
+ylabel('Y');
+title('Heatmap of Differences');

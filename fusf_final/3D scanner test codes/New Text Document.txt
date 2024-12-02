@@ -1,0 +1,9 @@
+y-axis 1D 75*2 steps, 2 step size (由无声信号到强再到无)
+
+y-axis 1D 75 steps, 5 step size 单边
+
+y-axis 1D -75 steps, 5 step size 回溯
+
+y-axis 1D 100 steps, 2 step size计时
+
+x,y  1~2组

@@ -1,0 +1,9 @@
+200 step(y) * 40 step (z)
+2 step size on y, 10 step on z
+20mV  1.00 us on-screen
+X_INCER
+Y_INCRE
+
+1.000000e-08
+
+6.250000e-04

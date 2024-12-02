@@ -1,0 +1,135 @@
+  input_dimension  = app.ModeEditField.Value;
+             input_axis =  app.AxisEditField.Value;
+             input_string_len = app.LengthEditField.Value;
+
+
+step_sizes_cell_len = strsplit(input_string_len, ',');        
+len_x = str2double(step_sizes_cell_len{1});
+len_y = str2double(step_sizes_cell_len{2});
+len_z = str2double(step_sizes_cell_len{3});
+
+
+%% the movement's direction is determined in step's being positive or negative
+                                            
+input_string_step = app.Step_sizeEditField.Value;
+
+step_sizes_cell = strsplit(input_string_step, ',');
+
+
+step_x = str2double(step_sizes_cell{1});
+step_y = str2double(step_sizes_cell{2});
+step_z = str2double(step_sizes_cell{3});
+            if strcmp(input_dimension, "2D")
+     %%disp('Initiate 2D scan');
+     if strcmp(input_axis, "110")
+         input_axis_2D = "xy";
+         len_a = len_x;
+         len_b = len_y;
+         step_a = step_x;
+         step_b = step_y;
+     elseif strcmp(input_axis, "101")
+         input_axis_2D = "xz";
+         len_a = len_x;
+         len_b = len_z;
+         step_a = step_x;
+         step_b = step_z;
+     elseif strcmp(input_axis, "011")
+         input_axis_2D = "yz";
+         len_a = len_y;
+         len_b = len_z;
+         step_a = step_y;
+         step_b = step_z;
+     end
+            end
+            revol_a = len_a/step_a;
+            revol_b = len_b/step_b;
+            twoD_hifft(revol_a,revol_b)
+            
+ function twoD_hifft(revol_a,revol_b)
+
+    differences = zeros(revol_a, revol_b);
+
+    % Iterate over each MATLAB variable
+    for i = 1:revol_a
+        for j = 1:revol_b
+
+        % Load the MATLAB variable from the MAT file
+        filename = fullfile('C:\Users\Jinzhi Shen\Desktop\fusf_redo\test_scan', sprintf('matlab_%d_%d.mat', i,j));
+        loaded_data = load(filename);  % Load the variable from the MAT file
+        wave = loaded_data.wave;
+
+        wave = wave';
+
+    
+        fftSpec = fft( wave', 2048 );
+
+        threshold = 1000; % Adjust the threshold as needed
+
+% Find indices of FFT values below the threshold
+        low_magnitude_indices = abs(fftSpec) > threshold;
+
+% Set values below the threshold to zero
+        fftSpec(low_magnitude_indices) = 0;
+      
+
+        restored_wave = ifft(fftSpec, 'symmetric');
+
+        max_val = max( restored_wave(1:1400));
+        min_val = min( restored_wave(1:1400));
+
+        val = max_val - min_val;
+        differences(i,j) = val;
+        end
+    end
+[X, Y] = meshgrid(1:revol_b, 1:revol_a);
+% Reverse the y-axis direction
+%%differences = flipud(differences);
+
+% Plot the differences as a 2D color map
+imagesc(differences);
+
+% Add labels and colorbar
+xlabel('Column Index y 5 * 0.01 scale');
+ylabel('Row Index z 5 * 0.01 scale');
+colorbar;
+title('Differences Heatmap');
+
+figure;
+plot3(X(:), Y(:), differences(:), 'o');
+xlabel('Column Index (revol_b)');
+ylabel('Row Index (revol_a)');
+zlabel('Difference');
+title('Differences 3D Plot');
+
+% Create a surface plot
+figure;
+surf(X, Y, differences);
+xlabel('Column Index (revol_b)');
+ylabel('Row Index (revol_a)');
+zlabel('Difference');
+title('Differences Surface Plot');
+
+
+% Define the function to fit
+model_func = @(params, indices) params(1) ./ ((21 - indices(:, 2)).^2 + indices(:, 1).^2);
+
+% Initial guess for the parameters
+initial_guess = 1;
+
+% Perform least squares curve fitting
+params_fit = lsqcurvefit(model_func, initial_guess, [X(:), Y(:)], differences(:));
+
+% Calculate the fitted values
+fit_values = model_func(params_fit, [X(:), Y(:)]);
+
+% Reshape the fitted values to the same size as differences
+fit_values_reshaped = reshape(fit_values, size(differences));
+
+% Calculate the loss (residual sum of squares)
+loss = sum((fit_values - differences(:)).^2);
+
+% Display the fitted parameters and loss
+disp('Fitted Parameters:');
+disp(params_fit);
+disp(['Loss: ', num2str(loss)]);
+            end

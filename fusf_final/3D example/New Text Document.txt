@@ -1,0 +1,8 @@
+200ns  20mV on-screen
+x_in  2.000000e-09
+y_in  6.250000e-04
+
+100,100,40
+10,10,10
+LASER ON CENTER
+

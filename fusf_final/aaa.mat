@@ -1,0 +1,53 @@
+ %% Fun gen sending burst signal begin
+    function data_generator(round_num)
+    visainst = visa('ni', 'USB0::0x0957::0x1507::MY48003157::0');
+
+    fopen(visainst);
+
+    % set the wave for the square, 10 khz, 5vpp, 30% duty cycle
+    fprintf(visainst, 'TRIG:SOUR BUS;*TRG;*WAI;*TRG;*WAI');
+    pause(1);
+    fprintf(visainst, 'TRIG:SOUR BUS;*TRG;*WAI;*TRG;*WAI');
+    fclose(visainst);
+
+
+    %% Fun gen sending burst signal end
+
+    %% Scanning process begin
+    %% start the laser scan on chanel3
+   mso4000 = visa( 'ni','USB0::0x1AB1::0x04B1::DS4A175000664::0::INSTR' );
+   mso4000.InputBufferSize = 2048;
+
+   fopen(mso4000);
+ 
+   %% checking in 100 data collected whether we received a laser trigger signal
+   %% laser signal is around 10hz while the data acquisition rate is 4G/HZ which means we acquire 100 data 
+   %% 40,000 kHz which is much larger than 10hz
+
+    fprintf(mso4000, ':WAV:SOUR CHAN4' );
+
+    fprintf(mso4000, ':wav:data?' );
+
+    
+    [data,len]= fread( mso4000, 2048);
+
+    fclose( mso4000 );
+    
+    wave = data(12:len-1);
+
+    % Define the folder name
+    folderName = 'C:\Users\Jinzhi Shen\Desktop\fusf_redo\test_scan';
+
+    % Ensure the folder exists, if not, create it
+    if ~exist(folderName, 'dir')
+        mkdir(folderName);
+    end
+
+    matFileName = fullfile(folderName, sprintf('matlab_%s.mat', round_num));
+
+    
+    % Save data to the MATLAB file
+    save(matFileName, 'wave', 'len');
+    %% scanning process end 
+    
+    end

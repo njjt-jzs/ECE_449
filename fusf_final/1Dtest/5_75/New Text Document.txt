@@ -1,0 +1,5 @@
+y-aixs
+1D
+5 step size
+75 total step
+20mV on screen scale
